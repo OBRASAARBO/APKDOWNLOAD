@@ -157,9 +157,22 @@
         body: JSON.stringify({ pin: pin }),
         redirect: 'follow'
       })
-        .then(function (r) { return r.json(); })
-        .then(onResult)
-        .catch(onError);
+        .then(function (r) { return r.text(); })
+        .then(function (text) {
+          var data;
+          try { data = JSON.parse(text); }
+          catch (e) {
+            console.error('Server did not return JSON. First 300 chars:', text.slice(0, 300));
+            setLoading(false);
+            showMessage('The server sent an unexpected reply. Open the browser console (F12) for details.', false);
+            return;
+          }
+          onResult(data);
+        })
+        .catch(function (err) {
+          console.error('Request failed:', err);
+          onError(err);
+        });
     });
 
     function onResult(res) {
